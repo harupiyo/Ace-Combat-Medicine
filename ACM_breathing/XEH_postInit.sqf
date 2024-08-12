@@ -17,8 +17,31 @@
 
 ["isNotUsingBVM", {!((_this select 0) getVariable [QGVAR(isUsingBVM), false])}] call ACEFUNC(common,addCanInteractWithCondition);
 
+// このコードは、気胸の状態に基づいてDuty Factorを計算し、追加するためのものです。
+// 気胸の状態が悪化している場合や特定の条件が満たされている場合に、Duty Factorが異なる値に設定されます。
+
+// 気胸の機能が有効になっているかどうかを確認
 if (GVAR(pneumothoraxEnabled)) then {
+    // 気胸のDuty Factorを追加
+    // `ACEFUNC(advanced_fatigue,addDutyFactor)`関数を呼び出して、計算されたDuty Factorを追加します。
+    // Duty Factor（デューティファクタ）とは、ある負荷がオンになっている時間の割合を示すものです。
     [QGVAR(Pneumothorax), {
-        ([(linearConversion [0, 4, (_this getVariable [QGVAR(Pneumothorax_State), 0]), 1, 2, true]), 2] select ((_this getVariable [QGVAR(TensionPneumothorax_State), false]) || (_this getVariable [QGVAR(Hardcore_Pneumothorax), false]) || ((_this getVariable [QGVAR(Hemothorax_Fluid), 0]) > 1)));
+        // 気胸の状態に基づいてDuty Factorを計算
+        // select の条件が`true`の場合、`2`を選択し、そうでない場合は`linearConversion`の結果を選択します。
+        ([
+            // `0`から`4`の範囲で、`_this`（患者）の`QGVAR(Pneumothorax_State)`変数の値を`1`から`2`の範囲に変換します。
+            (linearConversion [0, 4, (_this getVariable [QGVAR(Pneumothorax_State), 0]), 1, 2, true]),
+            2
+         ]
+            select (
+                // 緊張性気胸の状態ではない
+                (_this getVariable [QGVAR(TensionPneumothorax_State), false])
+                // ハードコア気胸モードではない
+                || (_this getVariable [QGVAR(Hardcore_Pneumothorax), false])
+                // 血胸の血の流量が1より多い
+                || ((_this getVariable [QGVAR(Hemothorax_Fluid), 0]) > 1)
+            )
+        );
     }] call ACEFUNC(advanced_fatigue,addDutyFactor);
-};
+}
+
