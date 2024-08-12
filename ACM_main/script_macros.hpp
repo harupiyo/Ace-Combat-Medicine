@@ -187,9 +187,9 @@
 #define ACM_OXYGEN_HYPOXIA 67
 #define ACM_OXYGEN_DEATH 55
 
-#define ACM_TENSIONHEMOTHORAX_THRESHOLD 1.2
+#define ACM_TENSIONHEMOTHORAX_THRESHOLD 1.2 // 緊張性血胸の閾値
 
-#define GET_HEMOTHORAX_BLEEDRATE(unit) ([unit] call EFUNC(circulation,getHemothoraxBleedingRate))
+#define GET_HEMOTHORAX_BLEEDRATE(unit) ([unit] call EFUNC(circulation,getHemothoraxBleedingRate)) // 血胸の出血率を取得
 
 // Circulation
 #define GET_CIRCULATIONSTATE(unit) (unit getVariable [QEGVAR(circulation,CirculationState), false])

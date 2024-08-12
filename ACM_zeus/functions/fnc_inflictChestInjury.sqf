@@ -17,7 +17,7 @@
 
 params ["_control"];
 
-// Generic init
+// 一般的な初期化
 private _display = ctrlParent _control;
 private _ctrlButtonOK = _display displayCtrl 1; // IDC_OK
 private _logic = GETMVAR(BIS_fnc_initCuratorAttributes_target,objNull);
@@ -27,7 +27,7 @@ _control ctrlRemoveAllEventHandlers "SetFocus";
 
 private _unit = effectiveCommander attachedTo _logic;
 
-// Validate module target
+// モジュールターゲットの検証
 scopeName "Main";
 private _fnc_errorAndClose = {
     params ["_msg"];
@@ -38,13 +38,13 @@ private _fnc_errorAndClose = {
 
 switch (true) do {
     case (isNull _unit): {
-        [ACELSTRING(zeus,NothingSelected)] call _fnc_errorAndClose;
+        [ACELSTRING(zeus,NothingSelected)] call _fnc_errorAndClose; // ユニットが選択されていない場合
     };
     case !(_unit isKindOf "CAManBase"): {
-        [ACELSTRING(zeus,OnlyInfantry)] call _fnc_errorAndClose;
+        [ACELSTRING(zeus,OnlyInfantry)] call _fnc_errorAndClose; // ユニットが歩兵でない場合
     };
     case !(alive _unit): {
-        [ACELSTRING(zeus,OnlyAlive)] call _fnc_errorAndClose;
+        [ACELSTRING(zeus,OnlyAlive)] call _fnc_errorAndClose; // ユニットが生存していない場合
     };
 };
 
@@ -69,28 +69,28 @@ private _fnc_onConfirm = {
 
     private _selection = lbCurSel (_display displayCtrl IDC_MODULE_INFLICT_CHEST_INJURY_LIST);
 
-    _patient setVariable [QEGVAR(breathing,ChestInjury_State), true, true];
+    _patient setVariable [QEGVAR(breathing,ChestInjury_State), true, true]; // 胸部損傷の状態を設定
 
     switch (_selection) do {
         case 0: {
-            [_patient] call EFUNC(breathing,handlePneumothorax);
+            [_patient] call EFUNC(breathing,handlePneumothorax); // 気胸の処理
         };
         case 1: {
             _patient setVariable [QEGVAR(breathing,Pneumothorax_State), 4, true];
-            [_patient] call EFUNC(breathing,handlePneumothorax);
+            [_patient] call EFUNC(breathing,handlePneumothorax); // 気胸の処理
         };
         case 2: {
             _patient setVariable [QEGVAR(breathing,Hemothorax_State), 2, true];
-            [_patient] call EFUNC(breathing,handleHemothorax);
+            [_patient] call EFUNC(breathing,handleHemothorax); // 血胸の処理
         };
         case 3: {
             _patient setVariable [QEGVAR(breathing,Hemothorax_State), 2, true];
             _patient setVariable [QEGVAR(breathing,Hemothorax_Fluid), 1.2, true];
-            [_patient] call EFUNC(breathing,handleHemothorax);
+            [_patient] call EFUNC(breathing,handleHemothorax); // 血胸の処理
         };
     };
 
-    [_patient] call EFUNC(breathing,updateLungState);
+    [_patient] call EFUNC(breathing,updateLungState); // 肺の状態を更新
 };
 
 _display displayAddEventHandler ["Unload", _fnc_onUnload];
