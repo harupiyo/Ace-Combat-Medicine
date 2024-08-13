@@ -22,7 +22,7 @@ params ["_patient", ["_healed", false]];
 private _state = 1;
 
 // 血胸の状態と液体量を取得
-private _HTXState = _patient getVariable [QGVAR(Hemothorax_State), 0];
+private _HTXState = _patient getVariable [QGVAR(Hemothorax_State), 0];  // 使っていない
 private _HTXFluid = _patient getVariable [QGVAR(Hemothorax_Fluid), 0];
 
 // 気胸、緊張性気胸、ハードコア気胸の状態を取得
