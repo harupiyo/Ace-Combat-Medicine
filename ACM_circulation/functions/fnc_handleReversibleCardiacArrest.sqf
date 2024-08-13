@@ -35,6 +35,8 @@ private _PFH = [{
 
     // 可逆的心停止の時間と原因を取得
     private _time = _patient getVariable [QGVAR(ReversibleCardiacArrest_Time), -1];
+    // 可逆的な原因は緊張性気胸、胸腔内出血が重大である、低血液量（出血性ショック）、低酸素症からなる
+    // 可逆的な原因がある時、_reversibleCause は true になる
     private _reversibleCause = _patient getVariable [QEGVAR(breathing,TensionPneumothorax_State), false] || ((_patient getVariable [QEGVAR(breathing,Hemothorax_Fluid), 0] > ACM_TENSIONHEMOTHORAX_THRESHOLD)) || (GET_BLOOD_VOLUME(_patient) <= ACM_REVERSIBLE_CA_BLOODVOLUME) || (GET_OXYGEN(_patient) < ACM_OXYGEN_HYPOXIA);
     
     // 心停止のリズム状態が5でない、可逆的原因がない、心停止状態でない、患者が生存していない、または時間が経過した場合は終了

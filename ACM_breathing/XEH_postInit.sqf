@@ -29,8 +29,9 @@ if (GVAR(pneumothoraxEnabled)) then {
         // 気胸の状態に基づいてDuty Factorを計算
         // select の条件が`true`の場合、`2`を選択し、そうでない場合は`linearConversion`の結果を選択します。
         ([
-            // `0`から`4`の範囲で、`_this`（患者）の`QGVAR(Pneumothorax_State)`変数の値を`1`から`2`の範囲に変換します。
+            // Pneumothorax_State は0-4の範囲、それを1-2 の範囲にマッピングする
             (linearConversion [0, 4, (_this getVariable [QGVAR(Pneumothorax_State), 0]), 1, 2, true]),
+            // もしくは 2
             2
          ]
             select (

@@ -20,7 +20,7 @@
 
 params ["_medic", "_patient", "_bodyPart", "_classname"];
 
-// Delay by a frame if cursor menu is open to prevent progress bar failing
+// カーソルメニューが開いている場合、プログレスバーの失敗を防ぐためにフレームを遅延
 if (uiNamespace getVariable [QEGVAR(interact_menu,cursorMenuOpened), false]) exitWith {
     [FUNC(treatment), _this] call CBA_fnc_execNextFrame;
 };
@@ -29,7 +29,7 @@ if !(_this call FUNC(canTreat)) exitWith {false};
 
 private _config = configFile >> QGVAR(actions) >> _classname;
 
-// Get treatment time from config, exit if treatment time is zero
+// コンフィグから治療時間を取得し、治療時間がゼロの場合は終了
 private _treatmentTime = if (isText (_config >> "treatmentTime")) then {
     GET_FUNCTION(_treatmentTime,_config >> "treatmentTime");
 
@@ -44,12 +44,12 @@ private _treatmentTime = if (isText (_config >> "treatmentTime")) then {
 
 if (_treatmentTime == 0) exitWith {false};
 
-// Consume one of the treatment items if needed
-// Store item user so that used item can be returned on failure
+// 必要に応じて治療アイテムを消費
+// 失敗時に使用されたアイテムを返すためにアイテムユーザーを保存
 private _userAndItem = if (GET_NUMBER_ENTRY(_config >> "consumeItem") == 1) then {
     [_medic, _patient, getArray (_config >> "items")] call FUNC(useItem);
 } else {
-    [objNull, ""]; // Treatment does not require items to be consumed
+    [objNull, ""]; // 治療にアイテムの消費が必要ない場合
 };
 
 _userAndItem params ["_itemUser", "_usedItem", "_createLitter"];
@@ -57,7 +57,7 @@ _userAndItem params ["_itemUser", "_usedItem", "_createLitter"];
 private _isInZeus = !isNull findDisplay 312;
 
 if (_medic isNotEqualTo player || {!_isInZeus}) then {
-    // Get treatment animation for the medic
+    // メディックの治療アニメーションを取得
     private _medicAnim = if (_medic isEqualTo _patient) then {
         getText (_config >> ["animationMedicSelf", "animationMedicSelfProne"] select (stance _medic == "PRONE"));
     } else {
@@ -66,27 +66,27 @@ if (_medic isNotEqualTo player || {!_isInZeus}) then {
 
     _medic setVariable [QGVAR(selectedWeaponOnTreatment), weaponState _medic];
 
-    // Adjust animation based on the current weapon of the medic
+    // メディックの現在の武器に基づいてアニメーションを調整
     private _wpn = ["non", "rfl", "lnr", "pst"] param [["", primaryWeapon _medic, secondaryWeapon _medic, handgunWeapon _medic] find currentWeapon _medic, "non"];
     _medicAnim = [_medicAnim, "[wpn]", _wpn] call CBA_fnc_replace;
 
-    // This animation is missing, use alternative
+    // このアニメーションが欠けている場合、代替を使用
     if (_medicAnim == "AinvPknlMstpSlayWlnrDnon_medic") then {
         _medicAnim = "AinvPknlMstpSlayWlnrDnon_medicOther";
     };
 
-    // Determine the animation length
+    // アニメーションの長さを決定
     private _animDuration = GVAR(animDurations) getVariable _medicAnim;
     if (isNil "_animDuration") then {
         WARNING_2("animation [%1] for [%2] has no duration defined",_medicAnim,_classname);
         _animDuration = 10;
     };
 
-    // These animations have transitions that take a bit longer...
+    // これらのアニメーションには少し長い遷移がある...
     if (weaponLowered _medic) then {
         _animDuration = _animDuration + 0.5;
 
-        // Fix problems with lowered weapon transitions by raising the weapon first
+        // 武器の遷移の問題を修正するために、最初に武器を上げる
         if (currentWeapon _medic != "" && {_medicAnim != ""}) then {
             _medic action ["WeaponInHand", _medic];
         };
@@ -96,23 +96,23 @@ if (_medic isNotEqualTo player || {!_isInZeus}) then {
         _animDuration = _animDuration + 1;
     };
 
-    // Play treatment animation for medic and determine the ending animation
+    // メディックの治療アニメーションを再生し、終了アニメーションを決定
     if (vehicle _medic == _medic && {_medicAnim != ""}) then {
-        // Speed up animation based on treatment time (but cap max to prevent odd animiations/cam shake)
+        // 治療時間に基づいてアニメーションを高速化（ただし、奇妙なアニメーションやカメラの揺れを防ぐために最大値を制限）
         private _animRatio = _animDuration / _treatmentTime;
         TRACE_3("setAnimSpeedCoef",_animRatio,_animDuration,_treatmentTime);
 
-        // Don't slow down animation too much to prevent it looking funny.
+        // アニメーションが面白く見えないように、アニメーションをあまり遅くしない
         if (_animRatio < ANIMATION_SPEED_MIN_COEFFICIENT) then {
             _animRatio = ANIMATION_SPEED_MIN_COEFFICIENT;
         };
 
-        // Skip animation enitrely if progress bar too quick.
+        // プログレスバーが速すぎる場合、アニメーションを完全にスキップ
         if (_animRatio > ANIMATION_SPEED_MAX_COEFFICIENT) exitWith {};
 
         [QEGVAR(common,setAnimSpeedCoef), [_medic, _animRatio]] call CBA_fnc_globalEvent;
 
-        // Play animation
+        // アニメーションを再生
         private _endInAnim = "AmovP[pos]MstpS[stn]W[wpn]Dnon";
 
         private _pos = ["knl", "pne"] select (stance _medic == "PRONE");
@@ -135,7 +135,7 @@ if (_medic isNotEqualTo player || {!_isInZeus}) then {
         };
     };
 
-    // Play a random treatment sound globally if defined
+    // 定義されている場合、ランダムな治療音をグローバルに再生
     private _soundsConfig = _config >> "sounds";
 
     if (isArray _soundsConfig) then {

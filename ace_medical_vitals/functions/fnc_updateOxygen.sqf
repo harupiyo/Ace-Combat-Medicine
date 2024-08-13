@@ -19,49 +19,49 @@
 
 params ["_unit", "_deltaT", "_syncValue"];
 
-if (!GVAR(simulateSpO2)) exitWith {}; // changing back to default is handled in initSettings.inc.sqf
+if (!GVAR(simulateSpO2)) exitWith {}; // デフォルトに戻す処理は initSettings.inc.sqf で行われる
 
-#define IDEAL_PPO2 0.255
+#define IDEAL_PPO2 0.255 // 理想的な酸素分圧
 
-private _current = GET_SPO2(_unit);
-private _heartRate = GET_HEART_RATE(_unit);
+private _current = GET_SPO2(_unit); // 現在の酸素飽和度を取得
+private _heartRate = GET_HEART_RATE(_unit); // 心拍数を取得
 
-private _altitude = EGVAR(common,mapAltitude) + ((getPosASL _unit) select 2);
+private _altitude = EGVAR(common,mapAltitude) + ((getPosASL _unit) select 2); // 高度を取得
 private _po2 = if (missionNamespace getVariable [QEGVAR(weather,enabled), false]) then {
-    private _temperature = _altitude call EFUNC(weather,calculateTemperatureAtHeight);
-    private _pressure = _altitude call EFUNC(weather,calculateBarometricPressure);
-    [_temperature, _pressure, EGVAR(weather,currentHumidity)] call EFUNC(weather,calculateOxygenDensity)
+    private _temperature = _altitude call EFUNC(weather,calculateTemperatureAtHeight); // 高度での温度を計算
+    private _pressure = _altitude call EFUNC(weather,calculateBarometricPressure); // 気圧を計算
+    [_temperature, _pressure, EGVAR(weather,currentHumidity)] call EFUNC(weather,calculateOxygenDensity) // 酸素密度を計算
 } else {
-    // Rough approximation of the partial pressure of oxygen in the air
+    // 空気中の酸素分圧の大まかな近似
     0.25725 * (_altitude / 1000 + 1)
 };
 
-private _oxygenSaturation = (IDEAL_PPO2 min _po2) / IDEAL_PPO2;
+private _oxygenSaturation = (IDEAL_PPO2 min _po2) / IDEAL_PPO2; // 酸素飽和度を計算
 
-// Check gear for oxygen supply
+// 酸素供給のための装備をチェック
 [goggles _unit, headgear _unit, vest _unit] findIf {
     _x in GVAR(oxygenSupplyConditionCache) &&
     {ACE_player call (GVAR(oxygenSupplyConditionCache) get _x)} &&
-    { // Will only run this if other conditions are met due to lazy eval
+    { // 他の条件が満たされた場合にのみ実行
         _oxygenSaturation = 1;
         _po2 = IDEAL_PPO2;
         true
     }
 };
 
-// Base oxygen consumption rate
+// 基本的な酸素消費率
 private _negativeChange = BASE_OXYGEN_USE;
 
-// Fatigue & exercise will demand more oxygen
-// Assuming a trained male in midst of peak exercise will have a peak heart rate of ~180 BPM
-// Ref: https://academic.oup.com/bjaed/article-pdf/4/6/185/894114/mkh050.pdf table 2, though we don't take stroke volume change into account
+// 疲労と運動はより多くの酸素を必要とする
+// 訓練された男性がピーク運動中に約180 BPMのピーク心拍数を持つと仮定
+// 参考: https://academic.oup.com/bjaed/article-pdf/4/6/185/894114/mkh050.pdf 表2、ただしストロークボリュームの変化は考慮しない
 if (_unit == ACE_player && {missionNamespace getVariable [QEGVAR(advanced_fatigue,enabled), false]}) then {
     _negativeChange = _negativeChange - ((1 - EGVAR(advanced_fatigue,aeReservePercentage)) * 0.1) - ((1 - EGVAR(advanced_fatigue,anReservePercentage)) * 0.05);
 };
 
-// Effectiveness of capturing oxygen
-// increases slightly as po2 starts lowering
-// but falls off quickly as po2 drops further
+// 酸素捕捉の効果
+// po2が低下し始めるとわずかに増加
+// しかし、po2がさらに低下すると急速に減少
 private _capture = 1 max ((_po2 / IDEAL_PPO2) ^ (-_po2 * 3));
 private _positiveChange = _heartRate * 0.00368 * _oxygenSaturation * _capture;
 
@@ -72,4 +72,4 @@ private _rateOfChange = _negativeChange + (_positiveChange * _breathingEffective
 private _spo2 = (_current + (_rateOfChange * _deltaT)) max 0 min 100;
 
 _unit setVariable [VAR_OXYGEN_DEMAND, _negativeChange - BASE_OXYGEN_USE];
-_unit setVariable [VAR_SPO2, _spo2, _syncValue];
+_unit setVariable [VAR_SPO2, _spo2, _syncValue]; // 酸素飽和度を設定

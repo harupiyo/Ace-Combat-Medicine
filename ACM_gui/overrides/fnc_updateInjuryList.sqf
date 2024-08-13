@@ -1,7 +1,7 @@
 #include "..\script_component.hpp"
 /*
  * Author: mharis001
- * Updates injury list for given body part for the target.
+ * 対象の特定の部位に対する負傷リストを更新します。
  *
  * Arguments:
  * 0: Injury list <CONTROL>

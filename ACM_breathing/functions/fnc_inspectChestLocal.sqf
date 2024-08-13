@@ -35,33 +35,37 @@ private _airwayBlocked = GET_AIRWAYSTATE(_patient) == 0;
 
 // 胸部の状態に応じたメッセージとログを設定
 switch (true) do {
+    // 呼吸停止または気道閉塞の場合
     case (_respiratoryArrest || _airwayBlocked): {
-        _hint = "No chest movement observed";
-        _hintLog = "No chest movement";
+        _hint = "No chest movement observed"; // 胸の動きが観察されない
+        _hintLog = "No chest movement"; // ログには「胸の動きなし」と記録
         
-        if (_pneumothorax || _tensionPneumothorax) then {
-            _hint = format ["%1<br/>%2", _hint, "Chest sides are uneven"];
-            _hintLog = format ["%1%2", _hintLog, ", chest sides uneven"];
-            _hintHeight = 2;
+        if (_pneumothorax || _tensionPneumothorax) then { // 気胸または緊張性気胸の場合
+            _hint = format ["%1<br/>%2", _hint, "Chest sides are uneven"]; // 胸の両側が不均等
+            _hintLog = format ["%1%2", _hintLog, ", chest sides uneven"]; // ログには「胸の両側が不均等」と記録
+            _hintHeight = 2; // ヒントの高さを設定
         };
 
-        if (_hemothorax) then {
-            _hint = format ["%1<br/>%2", _hint, "Noticable extensive bruising"];
-            _hintLog = format ["%1%2", _hintLog, ", extensive bruising"];
-            _hintHeight = _hintHeight + 0.5;
+        if (_hemothorax) then { // 血胸の場合
+            _hint = format ["%1<br/>%2", _hint, "Noticable extensive bruising"]; // 顕著な広範囲のあざ
+            _hintLog = format ["%1%2", _hintLog, ", extensive bruising"]; // ログには「顕著な広範囲のあざ」と記録
+            _hintHeight = _hintHeight + 0.5; // ヒントの高さを調整
         };
     };
+    // 気胸の場合
     case (_pneumothorax): {
-        _hint = "Uneven chest rise and fall observed";
-        _hintLog = "Uneven chest rise and fall";
+        _hint = "Uneven chest rise and fall observed"; // 胸の上昇と下降が不均等
+        _hintLog = "Uneven chest rise and fall"; // ログには「胸の上昇と下降が不均等」と記録
     };
+    // 血胸の場合
     case (_hemothorax): {
-        _hint = "Uneven chest rise and fall observed<br/>Noticable extensive bruising";
-        _hintLog = "Uneven chest rise and fall, extensive bruising";
-        _hintHeight = 2.5;
+        _hint = "Uneven chest rise and fall observed<br/>Noticable extensive bruising"; // 胸の上昇と下降が不均等、顕著な広範囲のあざ
+        _hintLog = "Uneven chest rise and fall, extensive bruising"; // ログには「胸の上昇と下降が不均等、顕著な広範囲のあざ」と記録
+        _hintHeight = 2.5; // ヒントの高さを設定
     };
-    default {};
+    default {}; // デフォルトケース
 };
+
 
 // メッセージを表示
 [QACEGVAR(common,displayTextStructured), [_hint, _hintHeight, _medic], _medic] call CBA_fnc_targetEvent;
